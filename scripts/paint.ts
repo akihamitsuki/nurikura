@@ -1,5 +1,6 @@
 import * as mc from 'mojang-minecraft';
-import { ColorName, ColorData } from './colors';
+import * as mcui from 'mojang-minecraft-ui';
+import { colorSetting } from './settings';
 
 /** 塗り替え禁止ブロック一覧 */
 const denyBlocks: mc.BlockType[] = [
@@ -45,6 +46,51 @@ function canPaint(block: mc.Block): boolean {
   return !block.isEmpty && !denyBlocks.includes(block.type) && isExposedBlock(block);
 }
 
+export function setColor(event: mc.BeforeItemUseEvent): void {
+  // 使用したアイテムが特定のアイテム以外なら処理を終了 -> 特定のアイテムを使用した場合だけ次の処理へ
+  // ここでは羽根(feather)を使用した場合だけ有効
+  if (event.item.id !== mc.MinecraftItemTypes.feather.id) {
+    return;
+  }
+
+  // イベントからプレイヤーを取得する
+  const player = <mc.Player>event.source;
+
+  // フォームのインスタンスを作成
+  const actionForm = new mcui.ActionFormData();
+  // 題名を追加
+  actionForm.title('色選択');
+  // 設問を追加
+  actionForm.body('塗る色を選択してください。');
+  // 選択肢を追加（追加順が、そのまま並び順になる
+  for (const color of colorSetting) {
+    actionForm.button(color.name);
+  }
+
+  // フォームを表示(show)し、入力後(then)の処理を続けて書く
+  actionForm.show(player).then((response) => {
+    // いったんすべての色タグを削除する
+    // そのエンティティが持っているすべてのタグを取得して繰り返し
+    for (const tag of player.getTags()) {
+      // 特定の接頭語を含んでいれば
+      if (tag.includes('color:')) {
+        // そのタグを取り除く
+        player.removeTag(tag);
+      }
+    }
+
+    // 選択にあわせて処理を行う
+    const color = colorSetting[response.selection];
+    if (color) {
+      player.addTag(`color:${color.id}`);
+      player.dimension.runCommand(`/tell @s 塗る色を「${color.name}」に設定しました。`);
+    }
+  });
+
+  // アイテムの使用を取り消す
+  event.cancel = true;
+}
+
 /**
  * そのブロックは空気に触れているか
  *
@@ -68,6 +114,17 @@ function isExposedBlock(block: mc.Block): boolean {
     }
   }
   return false;
+}
+
+function getColorName(player: mc.Player): string | undefined {
+  for (const tag of player.getTags()) {
+    // 特定の接頭語を含んでいれば
+    if (tag.includes('color:')) {
+      return tag.replace('color:', '');
+    }
+  }
+
+  return undefined;
 }
 
 /**
@@ -98,9 +155,12 @@ export function projectileHit(event: mc.ProjectileHitEvent) {
     const permutation = blockType.createDefaultBlockPermutation();
     // 色プロパティを取得する
     const colorProperty = permutation.getProperty(mc.BlockProperties.color) as mc.StringBlockProperty;
-    // 色は任意の文字列ではなく、決まった値から選ぶ必要がある。
-    const color: ColorName = 'red';
-    colorProperty.value = color;
+    // プレイヤーのタグから色を取得する
+    const colorName = getColorName(shooter as mc.Player);
+    if (!colorName) {
+      return;
+    }
+    colorProperty.value = colorName;
     // 半径
     const radius = 1;
     // 各座標別に繰り返し
@@ -127,13 +187,25 @@ export function projectileHit(event: mc.ProjectileHitEvent) {
   const hitEntity: mc.EntityHitInformation = event.entityHit;
   if (hitEntity !== undefined) {
     const entity = hitEntity.entity;
+    // 対象が羊であるか
     if (hitEntity.entity.id !== mc.MinecraftEntityTypes.sheep.id) {
       return;
     }
-
-    if (entity.hasComponent('minecraft:color')) {
-      const color = entity.getComponent('minecraft:color') as mc.EntityColorComponent;
-      color.value = ColorData.Red;
+    // 色コンポーネントを持っているか
+    if (!entity.hasComponent('minecraft:color')) {
+      return;
+    }
+    // プレイヤーから色情報を取得できるか
+    const colorName = getColorName(shooter as mc.Player);
+    if (!colorName) {
+      return;
+    }
+    // 色情報を取得できるか
+    const color = colorSetting.find((v) => v.id === colorName);
+    if (color) {
+      // 色コンポーネントを取得して、値を変更
+      const colorComponent = entity.getComponent('minecraft:color') as mc.EntityColorComponent;
+      colorComponent.value = color.data;
     }
   }
 }
