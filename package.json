@@ -1,0 +1,29 @@
+{
+  "name": "nurikura",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akihamitsuki/nurikura.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/akihamitsuki/nurikura/issues"
+  },
+  "homepage": "https://github.com/akihamitsuki/nurikura#readme",
+  "devDependencies": {
+    "@types/mojang-gametest": "^0.1.5",
+    "@types/mojang-minecraft": "^0.1.6",
+    "@types/mojang-minecraft-ui": "^0.1.0",
+    "del": "^6.1.1",
+    "gulp": "^4.0.2",
+    "gulp-typescript": "^6.0.0-alpha.1",
+    "typescript": "^4.7.4"
+  }
+}
