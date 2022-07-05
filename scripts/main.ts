@@ -8,6 +8,12 @@ mc.world.events.playerJoin.subscribe((event) => {
   // プレイヤーのインベントリを取得する
   const inventory = event.player.getComponent('minecraft:inventory') as mc.EntityInventoryComponent;
 
+  // インベントリを空にする
+  // この時点では /clear は無効
+  for (let i = 0; i < inventory.container.size; i += 1) {
+    inventory.container.setItem(i, new mc.ItemStack(mc.MinecraftItemTypes.air, 0));
+  }
+
   // 設定用の羽根を渡す
   const feather: mc.ItemStack = new mc.ItemStack(mc.MinecraftItemTypes.feather);
   inventory.container.addItem(feather);
