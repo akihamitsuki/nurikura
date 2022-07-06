@@ -1,3 +1,4 @@
+import * as mc from 'mojang-minecraft';
 import { ColorData, ColorName } from './colors';
 
 interface ColorSetting {
@@ -22,4 +23,12 @@ export const colorSetting: ColorSetting[] = [
     name: 'イエロー',
     data: ColorData.Yellow,
   },
+];
+
+/** 塗り替え禁止ブロック一覧 */
+export const denyBlocks: mc.BlockType[] = [
+  mc.MinecraftBlockTypes.water,
+  mc.MinecraftBlockTypes.lava,
+  mc.MinecraftBlockTypes.flowingWater,
+  mc.MinecraftBlockTypes.flowingLava,
 ];

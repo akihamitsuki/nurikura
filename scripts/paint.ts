@@ -1,51 +1,8 @@
 import * as mc from 'mojang-minecraft';
 import * as mcui from 'mojang-minecraft-ui';
+import { Block } from './Block';
 import { Player } from './Player';
 import { colorSetting } from './settings';
-
-/** 塗り替え禁止ブロック一覧 */
-const denyBlocks: mc.BlockType[] = [
-  mc.MinecraftBlockTypes.water,
-  mc.MinecraftBlockTypes.lava,
-  mc.MinecraftBlockTypes.flowingWater,
-  mc.MinecraftBlockTypes.flowingLava,
-];
-
-interface Coordinate {
-  x: number;
-  y: number;
-  z: number;
-}
-
-interface Direction {
-  readonly up: Coordinate;
-  readonly down: Coordinate;
-  readonly north: Coordinate;
-  readonly south: Coordinate;
-  readonly west: Coordinate;
-  readonly east: Coordinate;
-  [key: string]: Coordinate;
-}
-
-const directions: Direction = {
-  up: { x: 0, y: 1, z: 0 },
-  down: { x: 0, y: -1, z: 0 },
-  south: { x: 0, y: 0, z: 1 },
-  north: { x: 0, y: 0, z: -1 },
-  east: { x: 1, y: 0, z: 0 },
-  west: { x: -1, y: 0, z: 0 },
-};
-
-/**
- * 塗り替え可能判定
- *
- * @param block 対象ブロック
- * @returns 塗り替え可能かどうか
- */
-function canPaint(block: mc.Block): boolean {
-  // (そのブロックが空気ではない) かつ (塗り替え禁止ブロックではない) かつ (露出ブロックである)
-  return !block.isEmpty && !denyBlocks.includes(block.type) && isExposedBlock(block);
-}
 
 export function setColor(event: mc.BeforeItemUseEvent): void {
   // 使用したアイテムが特定のアイテム以外なら処理を終了 -> 特定のアイテムを使用した場合だけ次の処理へ
@@ -75,31 +32,6 @@ export function setColor(event: mc.BeforeItemUseEvent): void {
 
   // アイテムの使用を取り消す
   event.cancel = true;
-}
-
-/**
- * そのブロックは空気に触れているか
- *
- * 表面だけ塗りたいので、地中などのブロックを塗り替えないようにしたい
- *
- * @param block 対象ブロック
- * @return 判定
- */
-function isExposedBlock(block: mc.Block): boolean {
-  // あらかじめ設定しておいた向き配列で繰り返し
-  for (const key in directions) {
-    // その向きのブロックを取得する
-    // 今回の座標を取得する
-    const { x, y, z } = directions[key];
-    // その座標のブロックを取得する
-    const targetBlock = block.dimension.getBlock(block.location.offset(x, y, z));
-    // その向きにあるブロックは空気であるか
-    if (targetBlock.isEmpty) {
-      // 真ならリターンして終了(今回の条件ではどこか1つだけでいい)
-      return true;
-    }
-  }
-  return false;
 }
 
 interface ColorCount {
@@ -167,7 +99,7 @@ export function projectileHit(event: mc.ProjectileHitEvent) {
           // その座標のブロックを取得する
           const targetBlock = event.dimension.getBlock(targetLocation);
           // そのブロックが塗り替え可能ならば
-          if (canPaint(targetBlock)) {
+          if (new Block(targetBlock).canPaint()) {
             // 対象のブロック同じ種類のブロックなら
             // 塗られて消えるブロックなので、その色の数を減らす
             if (targetBlock.id === blockType.id) {
