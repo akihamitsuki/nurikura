@@ -127,6 +127,22 @@ function getColorName(player: mc.Player): string | undefined {
   return undefined;
 }
 
+interface ColorCount {
+  color: string;
+  count: number;
+}
+
+function getColorCountObject() {
+  const colorCount: ColorCount[] = [];
+  for (const setting of colorSetting) {
+    colorCount.push({
+      color: setting.id,
+      count: 0,
+    });
+  }
+  return colorCount;
+}
+
 /**
  * 発射物が当たった時のイベント
  *
@@ -163,6 +179,9 @@ export function projectileHit(event: mc.ProjectileHitEvent) {
     colorProperty.value = colorName;
     // 半径
     const radius = 1;
+    // 塗った色を数える
+    const colorCount: ColorCount[] = getColorCountObject();
+
     // 各座標別に繰り返し
     for (let x = -radius; x <= radius; x += 1) {
       for (let y = -radius; y <= radius; y += 1) {
@@ -173,13 +192,37 @@ export function projectileHit(event: mc.ProjectileHitEvent) {
           const targetBlock = event.dimension.getBlock(targetLocation);
           // そのブロックが塗り替え可能ならば
           if (canPaint(targetBlock)) {
+            // 対象のブロック同じ種類のブロックなら
+            // 塗られて消えるブロックなので、その色の数を減らす
+            if (targetBlock.id === blockType.id) {
+              const beforePermutation = targetBlock.permutation.getProperty(
+                mc.BlockProperties.color
+              ) as mc.StringBlockProperty;
+              const index: number = colorCount.findIndex((v) => v.color === beforePermutation.value);
+              if (index !== -1) {
+                colorCount[index].count -= 1;
+              }
+            }
             // ブロックの種類を変更
             targetBlock.setType(blockType);
             // ブロック内の情報を設定する（色変更）。もとの情報を変更するのではなく、新しく上書きする
             targetBlock.setPermutation(permutation);
+            // 塗ったブロックなので、その色の数を増やす
+            const index: number = colorCount.findIndex((v) => v.color === colorName);
+            if (index !== -1) {
+              colorCount[index].count += 1;
+            }
           }
         }
       }
+    }
+
+    // ダイナミックプロパティに色の数を加算・減算する
+    for (const c of colorCount) {
+      // 現在の数を取得する
+      const count = mc.world.getDynamicProperty(`color:${c.color}`) as number;
+      // 数を加算して設定
+      mc.world.setDynamicProperty(`color:${c.color}`, count + c.count);
     }
   }
 
