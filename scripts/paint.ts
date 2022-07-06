@@ -1,5 +1,6 @@
 import * as mc from 'mojang-minecraft';
 import * as mcui from 'mojang-minecraft-ui';
+import { Player } from './Player';
 import { colorSetting } from './settings';
 
 /** 塗り替え禁止ブロック一覧 */
@@ -53,9 +54,6 @@ export function setColor(event: mc.BeforeItemUseEvent): void {
     return;
   }
 
-  // イベントからプレイヤーを取得する
-  const player = <mc.Player>event.source;
-
   // フォームのインスタンスを作成
   const actionForm = new mcui.ActionFormData();
   // 題名を追加
@@ -67,24 +65,12 @@ export function setColor(event: mc.BeforeItemUseEvent): void {
     actionForm.button(color.name);
   }
 
+  // イベントからプレイヤーを取得する
+  const player = new Player(event.source as mc.Player);
   // フォームを表示(show)し、入力後(then)の処理を続けて書く
-  actionForm.show(player).then((response) => {
-    // いったんすべての色タグを削除する
-    // そのエンティティが持っているすべてのタグを取得して繰り返し
-    for (const tag of player.getTags()) {
-      // 特定の接頭語を含んでいれば
-      if (tag.includes('color:')) {
-        // そのタグを取り除く
-        player.removeTag(tag);
-      }
-    }
-
-    // 選択にあわせて処理を行う
-    const color = colorSetting[response.selection];
-    if (color) {
-      player.addTag(`color:${color.id}`);
-      player.dimension.runCommand(`/tell @s 塗る色を「${color.name}」に設定しました。`);
-    }
+  actionForm.show(player.player).then((response) => {
+    player.clearColorTag();
+    player.setColorTag(response.selection);
   });
 
   // アイテムの使用を取り消す
@@ -114,17 +100,6 @@ function isExposedBlock(block: mc.Block): boolean {
     }
   }
   return false;
-}
-
-export function getColorName(player: mc.Player): string | undefined {
-  for (const tag of player.getTags()) {
-    // 特定の接頭語を含んでいれば
-    if (tag.includes('color:')) {
-      return tag.replace('color:', '');
-    }
-  }
-
-  return undefined;
 }
 
 interface ColorCount {
@@ -172,7 +147,8 @@ export function projectileHit(event: mc.ProjectileHitEvent) {
     // 色プロパティを取得する
     const colorProperty = permutation.getProperty(mc.BlockProperties.color) as mc.StringBlockProperty;
     // プレイヤーのタグから色を取得する
-    const colorName = getColorName(shooter as mc.Player);
+    const player = new Player(shooter as mc.Player);
+    const colorName = player.getColorName();
     if (!colorName) {
       return;
     }
@@ -239,7 +215,7 @@ export function projectileHit(event: mc.ProjectileHitEvent) {
       return;
     }
     // プレイヤーから色情報を取得できるか
-    const colorName = getColorName(shooter as mc.Player);
+    const colorName = new Player(shooter as mc.Player).getColorName();
     if (!colorName) {
       return;
     }
