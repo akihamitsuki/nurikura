@@ -116,7 +116,7 @@ function isExposedBlock(block: mc.Block): boolean {
   return false;
 }
 
-function getColorName(player: mc.Player): string | undefined {
+export function getColorName(player: mc.Player): string | undefined {
   for (const tag of player.getTags()) {
     // 特定の接頭語を含んでいれば
     if (tag.includes('color:')) {
