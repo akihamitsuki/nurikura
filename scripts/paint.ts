@@ -2,6 +2,7 @@ import * as mc from 'mojang-minecraft';
 import * as mcui from 'mojang-minecraft-ui';
 import { Block } from './Block';
 import { Player } from './Player';
+import { Score } from './Score';
 import { colorSetting } from './settings';
 
 export function setColor(event: mc.BeforeItemUseEvent): void {
@@ -34,21 +35,21 @@ export function setColor(event: mc.BeforeItemUseEvent): void {
   event.cancel = true;
 }
 
-interface ColorCount {
-  color: string;
-  count: number;
-}
+// interface ColorCount {
+//   color: string;
+//   count: number;
+// }
 
-function getColorCountObject() {
-  const colorCount: ColorCount[] = [];
-  for (const setting of colorSetting) {
-    colorCount.push({
-      color: setting.id,
-      count: 0,
-    });
-  }
-  return colorCount;
-}
+// function getColorCountObject() {
+//   const colorCount: ColorCount[] = [];
+//   for (const setting of colorSetting) {
+//     colorCount.push({
+//       color: setting.id,
+//       count: 0,
+//     });
+//   }
+//   return colorCount;
+// }
 
 function getPaintPermutation(paintBlockType: mc.BlockType, colorName: string): mc.BlockPermutation {
   const paintPermutation = paintBlockType.createDefaultBlockPermutation();
@@ -95,7 +96,7 @@ export function projectileHit(event: mc.ProjectileHitEvent) {
     // 塗り替え先ブロックの組み合わせ情報を作成する
     const paintPermutation = getPaintPermutation(paintBlockType, colorName);
     // 塗った色を数える
-    const colorCount: ColorCount[] = getColorCountObject();
+    const score = new Score();
 
     // 各座標別に繰り返し
     for (let x = -radius; x <= radius; x += 1) {
@@ -108,34 +109,21 @@ export function projectileHit(event: mc.ProjectileHitEvent) {
           // そのブロックが塗り替え可能ならば
           if (targetBlock.canPaint()) {
             // 対象のブロック同じ種類のブロックなら
-            // 塗られて消えるブロックなので、その色の数を減らす
             if (targetBlock.isSame(paintBlockType)) {
-              const color = targetBlock.getColor();
-              if (color) {
-                const index: number = colorCount.findIndex((v) => v.color === color);
-                if (index !== -1) {
-                  colorCount[index].count -= 1;
-                }
-              }
+              // 塗られて消えるブロックなので、その色の数を減らす
+              score.add(targetBlock.getColor(), -1);
             }
+            // 対象ブロックを塗る
             targetBlock.paint(paintBlockType, paintPermutation);
             // 塗ったブロックなので、その色の数を増やす
-            const index: number = colorCount.findIndex((v) => v.color === colorName);
-            if (index !== -1) {
-              colorCount[index].count += 1;
-            }
+            score.add(colorName, 1);
           }
         }
       }
     }
 
-    // ダイナミックプロパティに色の数を加算・減算する
-    for (const c of colorCount) {
-      // 現在の数を取得する
-      const count = mc.world.getDynamicProperty(`color:${c.color}`) as number;
-      // 数を加算して設定
-      mc.world.setDynamicProperty(`color:${c.color}`, count + c.count);
-    }
+    // 塗り替えた色の数を保存する
+    score.save();
   }
 
   // 羊だったら色を変える

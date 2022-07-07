@@ -1,5 +1,6 @@
 import * as mc from 'mojang-minecraft';
 import { Player } from './Player';
+import { Score } from './Score';
 import { setColor, projectileHit } from './paint';
 import { colorSetting } from './settings';
 
@@ -32,7 +33,7 @@ mc.world.events.worldInitialize.subscribe((event) => {
 // 塗った数を表示
 mc.world.events.tick.subscribe((event) => {
   if (event.currentTick % 20 === 0) {
-    showCurrentScore();
+    new Score().showResult();
   }
 
   if (event.currentTick % 5 === 0) {
@@ -40,25 +41,11 @@ mc.world.events.tick.subscribe((event) => {
   }
 });
 
-const overworld = mc.world.getDimension('overworld');
-/**
- * 現在のスコアを表示
- */
-function showCurrentScore() {
-  let text = '';
-  for (const color of colorSetting) {
-    const count = mc.world.getDynamicProperty(`color:${color.id}`) as number;
-    text += `${color.id}: ${count} / `;
-  }
-  // コマンド数を節約するために、次元をオーバーワールドに限定して@aを用いている
-  overworld.runCommand(`title @a actionbar ${text}`);
-}
-
-const snowball = new mc.ItemStack(mc.MinecraftItemTypes.snowball, 1);
 /**
  * 弾を補充する
  */
 function reloadBullet() {
+  const snowball = new mc.ItemStack(mc.MinecraftItemTypes.snowball, 1);
   // すべてのプレイヤーで繰り返し
   for (const mcPlayer of mc.world.getPlayers()) {
     // スニークをしているかを判定
