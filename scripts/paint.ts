@@ -1,39 +1,8 @@
 import * as mc from 'mojang-minecraft';
-import * as mcui from 'mojang-minecraft-ui';
 import { Block } from './Block';
 import { Player } from './Player';
 import { Score } from './Score';
 import { Setting } from './Setting';
-
-export function setColor(event: mc.BeforeItemUseEvent): void {
-  // 使用したアイテムが特定のアイテム以外なら処理を終了 -> 特定のアイテムを使用した場合だけ次の処理へ
-  // ここでは羽根(feather)を使用した場合だけ有効
-  if (event.item.id !== mc.MinecraftItemTypes.feather.id) {
-    return;
-  }
-
-  // フォームのインスタンスを作成
-  const actionForm = new mcui.ActionFormData();
-  // 題名を追加
-  actionForm.title('色選択');
-  // 設問を追加
-  actionForm.body('塗る色を選択してください。');
-  // 選択肢を追加（追加順が、そのまま並び順になる
-  for (const color of Setting.colors) {
-    actionForm.button(color.name);
-  }
-
-  // イベントからプレイヤーを取得する
-  const player = new Player(event.source as mc.Player);
-  // フォームを表示(show)し、入力後(then)の処理を続けて書く
-  actionForm.show(player.player).then((response) => {
-    player.clearColorTag();
-    player.setColorTag(response.selection);
-  });
-
-  // アイテムの使用を取り消す
-  event.cancel = true;
-}
 
 /**
  * ブロック情報を作成
@@ -180,6 +149,44 @@ export function reloadBullet() {
       mcPlayer.dimension.spawnItem(snowball, mcPlayer.location);
     }
   }
+}
+
+export function inGame(event: mc.TickEvent) {
+  if (event.currentTick % 20 === 0) {
+    new Score().showResult();
+  }
+
+  if (event.currentTick % 5 === 0) {
+    reloadBullet();
+  }
+}
+
+export function onWorldInitilaize(event: mc.WorldInitializeEvent) {
+  // ダイナミックプロパティの定義
+  const colorDef = new mc.DynamicPropertiesDefinition();
+  for (const color of Setting.colors) {
+    colorDef.defineNumber(`color:${color.id}`);
+  }
+  event.propertyRegistry.registerWorldDynamicProperties(colorDef);
+
+  // ダイナミックプロパティの初期値を設定
+  for (const color of Setting.colors) {
+    mc.world.setDynamicProperty(`color:${color.id}`, 0);
+  }
+}
+
+export function onPlayerJoin(event: mc.PlayerJoinEvent) {
+  // 独自のプレイヤークラスを生成する
+  const player = new Player(event.player);
+  // プレイヤーの状態を初期化
+  player.initilize();
+  // ログイン時には/clearが無効になるようなので、個別のスロットを消していく
+  const inventory = player.getInventory();
+  for (let i = 0; i < inventory.container.size; i += 1) {
+    inventory.container.setItem(i, new mc.ItemStack(mc.MinecraftItemTypes.air, 0));
+  }
+  // // 初期アイテムを渡す
+  player.giveLobbyItem();
 }
 
 /** ブロックを壊したら雪玉 */
