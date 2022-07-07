@@ -1,4 +1,5 @@
 import * as mc from 'mojang-minecraft';
+import { Block } from './Block';
 import { colorSetting } from './settings';
 
 export class Player {
@@ -75,5 +76,11 @@ export class Player {
     }
 
     return undefined;
+  }
+
+  getBottomBlock(): Block {
+    const location = this.player.location;
+    const bottomLocation = new mc.BlockLocation(location.x, location.y - 1, location.z);
+    return new Block(this.player.dimension.getBlock(bottomLocation));
   }
 }

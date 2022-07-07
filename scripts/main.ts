@@ -60,23 +60,22 @@ const snowball = new mc.ItemStack(mc.MinecraftItemTypes.snowball, 1);
  */
 function reloadBullet() {
   // すべてのプレイヤーで繰り返し
-  for (const player of mc.world.getPlayers()) {
+  for (const mcPlayer of mc.world.getPlayers()) {
     // スニークをしているかを判定
-    if (!player.isSneaking) {
+    if (!mcPlayer.isSneaking) {
       continue;
     }
+    const player = new Player(mcPlayer);
     // 足元のブロックを確認
-    const bottomLocation = new mc.BlockLocation(player.location.x, player.location.y - 1, player.location.z);
-    const bottomBlock = player.dimension.getBlock(bottomLocation);
-    if (bottomBlock.id !== mc.MinecraftBlockTypes.wool.id) {
+    const bottomBlock = player.getBottomBlock();
+    if (!bottomBlock.isSame(mc.MinecraftBlockTypes.wool)) {
       continue;
     }
     // そのプレイヤーの色と一致するか
-    const colorProperty = bottomBlock.permutation.getProperty(mc.BlockProperties.color) as mc.StringBlockProperty;
-    const colorName = new Player(player).getColorName();
-    if (colorName && colorName === colorProperty.value) {
+    const playerColor = player.getColorName();
+    if (playerColor && playerColor === bottomBlock.getColor()) {
       // そのプレイヤーの座標にアイテムを作成(すぐに取得される)
-      player.dimension.spawnItem(snowball, player.location);
+      mcPlayer.dimension.spawnItem(snowball, mcPlayer.location);
     }
   }
 }

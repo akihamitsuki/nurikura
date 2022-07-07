@@ -62,4 +62,23 @@ export class Block {
     // (そのブロックが空気ではない) かつ (塗り替え禁止ブロックではない) かつ (露出ブロックである)
     return !this.block.isEmpty && !denyBlocks.includes(this.block.type) && this.isExposed();
   }
+
+  getColor(): string | undefined {
+    const colorProperty = this.block.permutation.getProperty(mc.BlockProperties.color) as mc.StringBlockProperty;
+    if (colorProperty) {
+      return colorProperty.value;
+    }
+    return undefined;
+  }
+
+  isSame(type: mc.BlockType): boolean {
+    return this.block.id === type.id;
+  }
+
+  paint(paintBlockType: mc.BlockType, paintPermutation: mc.BlockPermutation) {
+    // ブロックの種類を変更
+    this.block.setType(paintBlockType);
+    // ブロック内の情報を設定する（色変更）。もとの情報を変更するのではなく、新しく上書きする
+    this.block.setPermutation(paintPermutation);
+  }
 }

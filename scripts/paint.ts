@@ -50,6 +50,16 @@ function getColorCountObject() {
   return colorCount;
 }
 
+function getPaintPermutation(paintBlockType: mc.BlockType, colorName: string): mc.BlockPermutation {
+  const paintPermutation = paintBlockType.createDefaultBlockPermutation();
+  // 色プロパティを取得する
+  const colorProperty = paintPermutation.getProperty(mc.BlockProperties.color) as mc.StringBlockProperty;
+  // 色を設定する
+  colorProperty.value = colorName;
+  // 順列情報を返す
+  return paintPermutation;
+}
+
 /**
  * 発射物が当たった時のイベント
  *
@@ -71,22 +81,19 @@ export function projectileHit(event: mc.ProjectileHitEvent) {
   // ブロックに当たっていれば
   const hitBlock: mc.BlockHitInformation = event.blockHit;
   if (hitBlock !== undefined) {
-    // 塗り替えるブロックの種類
-    const blockType = mc.MinecraftBlockTypes.wool;
-    // 色を変更するのは少し手間がかかる
-    // 塗り替え先ブロックの組み合わせ情報を作成する
-    const permutation = blockType.createDefaultBlockPermutation();
-    // 色プロパティを取得する
-    const colorProperty = permutation.getProperty(mc.BlockProperties.color) as mc.StringBlockProperty;
     // プレイヤーのタグから色を取得する
-    const player = new Player(shooter as mc.Player);
-    const colorName = player.getColorName();
+    const colorName = new Player(shooter as mc.Player).getColorName();
+    // プレイヤーが色情報を持っていなければ終了
     if (!colorName) {
       return;
     }
-    colorProperty.value = colorName;
+
     // 半径
     const radius = 1;
+    // 塗り替えるブロックの種類
+    const paintBlockType = mc.MinecraftBlockTypes.wool;
+    // 塗り替え先ブロックの組み合わせ情報を作成する
+    const paintPermutation = getPaintPermutation(paintBlockType, colorName);
     // 塗った色を数える
     const colorCount: ColorCount[] = getColorCountObject();
 
@@ -97,24 +104,21 @@ export function projectileHit(event: mc.ProjectileHitEvent) {
           // 当たったブロックから相対的な座標を取得する
           const targetLocation = hitBlock.block.location.offset(x, y, z);
           // その座標のブロックを取得する
-          const targetBlock = event.dimension.getBlock(targetLocation);
+          const targetBlock = new Block(event.dimension.getBlock(targetLocation));
           // そのブロックが塗り替え可能ならば
-          if (new Block(targetBlock).canPaint()) {
+          if (targetBlock.canPaint()) {
             // 対象のブロック同じ種類のブロックなら
             // 塗られて消えるブロックなので、その色の数を減らす
-            if (targetBlock.id === blockType.id) {
-              const beforePermutation = targetBlock.permutation.getProperty(
-                mc.BlockProperties.color
-              ) as mc.StringBlockProperty;
-              const index: number = colorCount.findIndex((v) => v.color === beforePermutation.value);
-              if (index !== -1) {
-                colorCount[index].count -= 1;
+            if (targetBlock.isSame(paintBlockType)) {
+              const color = targetBlock.getColor();
+              if (color) {
+                const index: number = colorCount.findIndex((v) => v.color === color);
+                if (index !== -1) {
+                  colorCount[index].count -= 1;
+                }
               }
             }
-            // ブロックの種類を変更
-            targetBlock.setType(blockType);
-            // ブロック内の情報を設定する（色変更）。もとの情報を変更するのではなく、新しく上書きする
-            targetBlock.setPermutation(permutation);
+            targetBlock.paint(paintBlockType, paintPermutation);
             // 塗ったブロックなので、その色の数を増やす
             const index: number = colorCount.findIndex((v) => v.color === colorName);
             if (index !== -1) {
