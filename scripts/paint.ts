@@ -3,7 +3,7 @@ import * as mcui from 'mojang-minecraft-ui';
 import { Block } from './Block';
 import { Player } from './Player';
 import { Score } from './Score';
-import { colorSetting } from './settings';
+import { Setting } from './Setting';
 
 export function setColor(event: mc.BeforeItemUseEvent): void {
   // 使用したアイテムが特定のアイテム以外なら処理を終了 -> 特定のアイテムを使用した場合だけ次の処理へ
@@ -19,7 +19,7 @@ export function setColor(event: mc.BeforeItemUseEvent): void {
   // 設問を追加
   actionForm.body('塗る色を選択してください。');
   // 選択肢を追加（追加順が、そのまま並び順になる
-  for (const color of colorSetting) {
+  for (const color of Setting.colors) {
     actionForm.button(color.name);
   }
 
@@ -144,7 +144,7 @@ export function projectileHit(event: mc.ProjectileHitEvent) {
       return;
     }
     // 色情報を取得できるか
-    const color = colorSetting.find((v) => v.id === colorName);
+    const color = Setting.colors.find((v) => v.id === colorName);
     if (color) {
       // 色コンポーネントを取得して、値を変更
       const colorComponent = entity.getComponent('minecraft:color') as mc.EntityColorComponent;

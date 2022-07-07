@@ -1,5 +1,5 @@
 import * as mc from 'mojang-minecraft';
-import { colorSetting } from './settings';
+import { Setting } from './Setting';
 
 interface ColorCount {
   color: string;
@@ -10,9 +10,9 @@ export class Score {
   count: ColorCount[] = [];
 
   constructor() {
-    for (const setting of colorSetting) {
+    for (const color of Setting.colors) {
       this.count.push({
-        color: setting.id,
+        color: color.id,
         count: 0,
       });
     }
@@ -48,7 +48,7 @@ export class Score {
    */
   showResult() {
     let text = '';
-    for (const color of colorSetting) {
+    for (const color of Setting.colors) {
       const count = mc.world.getDynamicProperty(`color:${color.id}`) as number;
       text += `${color.id}: ${count} / `;
     }

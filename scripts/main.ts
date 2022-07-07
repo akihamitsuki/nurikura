@@ -2,7 +2,7 @@ import * as mc from 'mojang-minecraft';
 import { Player } from './Player';
 import { Score } from './Score';
 import { setColor, projectileHit } from './paint';
-import { colorSetting } from './settings';
+import { Setting } from './Setting';
 
 mc.world.events.beforeItemUse.subscribe(setColor);
 mc.world.events.projectileHit.subscribe(projectileHit);
@@ -19,13 +19,13 @@ mc.world.events.playerJoin.subscribe((event) => {
 mc.world.events.worldInitialize.subscribe((event) => {
   // ダイナミックプロパティの定義
   const colorDef = new mc.DynamicPropertiesDefinition();
-  for (const color of colorSetting) {
+  for (const color of Setting.colors) {
     colorDef.defineNumber(`color:${color.id}`);
   }
   event.propertyRegistry.registerWorldDynamicProperties(colorDef);
 
   // ダイナミックプロパティの初期値を設定
-  for (const color of colorSetting) {
+  for (const color of Setting.colors) {
     mc.world.setDynamicProperty(`color:${color.id}`, 0);
   }
 });

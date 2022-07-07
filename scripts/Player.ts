@@ -1,6 +1,6 @@
 import * as mc from 'mojang-minecraft';
 import { Block } from './Block';
-import { colorSetting } from './settings';
+import { Setting } from './Setting';
 
 export class Player {
   player: mc.Player;
@@ -53,7 +53,7 @@ export class Player {
   }
 
   setColorTag(colorNumber: number): void {
-    const color = colorSetting[colorNumber];
+    const color = Setting.colors[colorNumber];
     if (color) {
       this.player.addTag(`color:${color.id}`);
       this.player.dimension.runCommand(`msg ${this.player.nameTag} 塗る色を「${color.name}」に設定しました。`);

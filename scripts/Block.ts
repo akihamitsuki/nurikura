@@ -1,5 +1,5 @@
 import * as mc from 'mojang-minecraft';
-import { denyBlocks } from './settings';
+import { Setting } from './Setting';
 
 interface Coordinate {
   x: number;
@@ -60,7 +60,7 @@ export class Block {
    */
   canPaint(): boolean {
     // (そのブロックが空気ではない) かつ (塗り替え禁止ブロックではない) かつ (露出ブロックである)
-    return !this.block.isEmpty && !denyBlocks.includes(this.block.type) && this.isExposed();
+    return !this.block.isEmpty && !Setting.denyBlocks.includes(this.block.type) && this.isExposed();
   }
 
   getColor(): string | undefined {
