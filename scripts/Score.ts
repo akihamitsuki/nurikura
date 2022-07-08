@@ -1,4 +1,5 @@
 import * as mc from 'mojang-minecraft';
+import { ColorName } from './colors';
 import { Setting } from './Setting';
 
 interface ColorCount {
@@ -21,12 +22,20 @@ export class Score {
     }
   }
 
-  add(color: string | undefined, point: number): void {
-    if (color) {
-      const index: number = this.count.findIndex((v) => v.color === color);
-      if (index !== -1) {
-        this.count[index].count += point;
-      }
+  /**
+   * その色の得点を加算する（負の数も有効）
+   *
+   * @param color 対象となる色
+   * @param point 得点
+   */
+  add(color: ColorName | undefined, point: number): void {
+    if (color === undefined) {
+      return;
+    }
+
+    const index: number = this.count.findIndex((v) => v.color === color);
+    if (index !== -1) {
+      this.count[index].count += point;
     }
   }
 

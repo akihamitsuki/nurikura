@@ -1,5 +1,6 @@
 import * as mc from 'mojang-minecraft';
 import { Block } from './Block';
+import { ColorName } from './colors';
 import { Setting } from './Setting';
 
 /**
@@ -37,10 +38,10 @@ export class Player {
     }
   }
 
-  getColorName(): string | undefined {
+  getColorName(): ColorName | undefined {
     const colorTag = this.getColorTag();
     if (colorTag) {
-      return colorTag.replace('color:', '');
+      return colorTag.replace('color:', '') as ColorName;
     }
 
     return undefined;
