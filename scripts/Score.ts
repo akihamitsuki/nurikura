@@ -6,6 +6,9 @@ interface ColorCount {
   count: number;
 }
 
+/**
+ * 得点(score)に関する処理をまとめたクラス
+ */
 export class Score {
   count: ColorCount[] = [];
 
@@ -46,7 +49,7 @@ export class Score {
   /**
    * 結果を表示する
    */
-  showResult() {
+  public static showResult() {
     let text = '';
     for (const color of Setting.colors) {
       const count = mc.world.getDynamicProperty(`color:${color.id}`) as number;

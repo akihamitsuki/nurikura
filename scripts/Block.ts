@@ -26,6 +26,9 @@ const directions: Direction = {
   west: { x: -1, y: 0, z: 0 },
 };
 
+/**
+ * ブロック(block)に関する処理をまとめたクラス
+ */
 export class Block {
   block: mc.Block;
 

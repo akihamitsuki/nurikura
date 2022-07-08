@@ -2,6 +2,9 @@ import * as mc from 'mojang-minecraft';
 import { Block } from './Block';
 import { Setting } from './Setting';
 
+/**
+ * プレイヤー(player)に関する処理をまとめたクラス
+ */
 export class Player {
   player: mc.Player;
 
@@ -108,5 +111,21 @@ export class Player {
     // 設定用の羽根を渡す
     const feather: mc.ItemStack = new mc.ItemStack(mc.MinecraftItemTypes.feather);
     inventory.container.addItem(feather);
+  }
+
+  // events
+
+  public static onJoin(event: mc.PlayerJoinEvent) {
+    // 独自のプレイヤークラスを生成する
+    const player = new Player(event.player);
+    // プレイヤーの状態を初期化
+    player.initilize();
+    // ログイン時には /clear が無効になるようなので、個別のスロットを消していく
+    const inventory = player.getInventory();
+    for (let i = 0; i < inventory.container.size; i += 1) {
+      inventory.container.setItem(i, new mc.ItemStack(mc.MinecraftItemTypes.air, 0));
+    }
+    // // 初期アイテムを渡す
+    player.giveLobbyItem();
   }
 }

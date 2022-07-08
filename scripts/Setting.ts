@@ -7,7 +7,11 @@ interface ColorSetting {
   data: ColorData;
 }
 
+/**
+ * 設定(setting)に関する処理をまとめたクラス
+ */
 export class Setting {
+  /** ゲームで使用する色 */
   public static colors: ColorSetting[] = [
     {
       id: 'cyan',
