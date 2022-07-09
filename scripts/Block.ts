@@ -131,4 +131,24 @@ export class Block {
 
     return blocks;
   }
+
+  getHighestBlock(): mc.Block {
+    // そのブロックのXZと最も高いY座標を取得する
+    const loc = this.block.location;
+    const location = new mc.Location(loc.x, 255 + 64, loc.z);
+    // この方向に（今回は真下）
+    const direction = new mc.Vector(0, -1, 0);
+
+    // レイキャストの設定（対象がブロック）
+    const options = new mc.BlockRaycastOptions();
+    // 液体を判定に含むか
+    options.includeLiquidBlocks = false;
+    // 光が通過できるブロック（ガラスなど）を判定に含むか
+    options.includePassableBlocks = false;
+    // どこまでの距離を判定に含めるか
+    options.maxDistance = 255 + 64;
+
+    // 上の設定でレイキャストを使いブロックを取得
+    return this.block.dimension.getBlockFromRay(location, direction, options);
+  }
 }

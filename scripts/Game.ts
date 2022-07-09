@@ -1,5 +1,6 @@
 import * as mc from 'mojang-minecraft';
 import * as mcui from 'mojang-minecraft-ui';
+import { Field } from './Field';
 import { Player } from './Player';
 import { Score } from './Score';
 import { Setting } from './Setting';
@@ -89,7 +90,9 @@ export class Game {
     const actionForm = new mcui.ActionFormData();
     actionForm.title('ゲーム開始');
     actionForm.body('ゲームを開始しますか？');
-    actionForm.button('開始する');
+    actionForm.button('今の場所で開始する');
+    actionForm.button('別の場所を探す');
+    actionForm.button('ゲームフィールドを作成する');
 
     // イベントからプレイヤーを取得する
     const player = new Player(event.source as mc.Player);
@@ -98,7 +101,13 @@ export class Game {
       if (response.isCanceled) {
         return;
       }
-      Game.start();
+      if (response.selection === 0) {
+        Game.start();
+      } else if (response.selection === 1) {
+        Field.teleportNext();
+      } else if (response.selection === 2) {
+        Field.makeWall();
+      }
     });
 
     // アイテムの使用を取り消す

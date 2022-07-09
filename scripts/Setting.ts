@@ -36,5 +36,7 @@ export class Setting {
     mc.MinecraftBlockTypes.lava,
     mc.MinecraftBlockTypes.flowingWater,
     mc.MinecraftBlockTypes.flowingLava,
+    mc.MinecraftBlockTypes.glass,
+    mc.MinecraftBlockTypes.deny,
   ];
 }
