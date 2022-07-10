@@ -92,7 +92,7 @@ export class Game {
     actionForm.body('ゲームを開始しますか？');
     actionForm.button('今の場所で開始する');
     actionForm.button('別の場所を探す');
-    actionForm.button('ゲームフィールドを作成する');
+    actionForm.button('境界線を作成する');
 
     // イベントからプレイヤーを取得する
     const player = new Player(event.source as mc.Player);
@@ -104,9 +104,9 @@ export class Game {
       if (response.selection === 0) {
         Game.start();
       } else if (response.selection === 1) {
-        Field.teleportNext();
+        Field.teleportNext(player.player);
       } else if (response.selection === 2) {
-        Field.makeWall();
+        new Field(player.player).makeField();
       }
     });
 
